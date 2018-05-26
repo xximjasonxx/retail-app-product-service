@@ -1,0 +1,6 @@
+
+CREATE DATABASE IF NOT EXISTS Products;
+GO
+
+GRANT ALL PRIVILEGES ON Products.* to 'product-user'@'%' WITH GRANT OPTION;
+GO
