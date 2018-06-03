@@ -84,6 +84,8 @@ spec:
           env:
             - name: LOGIN_API_URL
               value: 'http://login-service/api'
+            - name: ProductConnectionString
+              value: server=product-mysql;database=Products;uid=product-user;pwd=Password01!
           ports:
             - containerPort: 80
               name: product-api

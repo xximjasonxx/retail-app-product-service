@@ -20,5 +20,6 @@ services:
       - 8080:80
     environment:
       LOGIN_API_URL: 'http://172.17.0.1:8081/api'
+      ProductConnectionString: server=product-database;database=Products;uid=product-user;pwd=Password01!
     depends_on:
       - product-database
