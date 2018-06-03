@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using ProductApi.Data;
 using ProductApi.Middleware;
 
@@ -25,9 +20,14 @@ namespace ProductApi
 
         public void ConfigureServices(IServiceCollection services)
         {
-            Console.WriteLine(Configuration.GetConnectionString("DefaultConnectionString"));
+            string connectionString = Configuration.GetConnectionString("DefaultConnectionString");
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ProductConnectionString")))
+            {
+                connectionString = Environment.GetEnvironmentVariable("ProductConnectionString");
+            }
+            
             services.AddDbContext<ProductDbContext>(
-                options => options.UseMySql(Configuration.GetConnectionString("DefaultConnectionString"))
+                options => options.UseMySql(connectionString)
             );
 
             // scoped services

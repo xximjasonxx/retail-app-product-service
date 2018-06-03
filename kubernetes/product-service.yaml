@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-mysql
+  labels:
+    app: product-service
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: product-service
+    tier: database
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-mysql
+  labels:
+    app: product-service
+spec:
+  selector:
+    matchLabels:
+      app: product-service
+      tier: database
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: product-service
+        tier: database
+    spec:
+      containers:
+        - image: mysql:latest
+          name: product-database
+          env:
+            - name: MYSQL_USER
+              value: product-user
+            - name: MYSQL_PASSWORD
+              value: Password01!
+            - name: MYSQL_DATABASE
+              value: Products
+            - name: MYSQL_RANDOM_ROOT_PASSWORD
+              value: 'yes'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+  labels:
+    app: product-service
+spec:
+  ports:
+    - port: 80
+  selector:
+    app: product-service
+    tier: api
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-api
+  labels:
+    app: product-service
+spec:
+  selector:
+    matchLabels:
+      app: product-service
+      tier: api
+  strategy:
+    type: Recreate
+  replicas: 4
+  template:
+    metadata:
+      labels:
+        app: product-service
+        tier: api
+    spec:
+      containers:
+        - image: registry.gitlab.com/retailapp/retail-app-product-service
+          name: product-api
+          env:
+            - name: LOGIN_API_URL
+              value: 'http://login-service/api'
+            - name: ProductConnectionString
+              value: server=product-mysql;database=Products;uid=product-user;pwd=Password01!
+          ports:
+            - containerPort: 80
+              name: product-api
