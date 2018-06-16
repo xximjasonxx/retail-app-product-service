@@ -25,6 +25,16 @@ namespace ProductApi
             {
                 connectionString = Environment.GetEnvironmentVariable("ProductConnectionString");
             }
+
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DB_HOST")))
+            {
+                connectionString = string.Format("server={0};database=Products;uid={1};pwd=Password01!",
+                    Environment.GetEnvironmentVariable("DB_HOST"),
+                    Environment.GetEnvironmentVariable("DB_USER"),
+                    Environment.GetEnvironmentVariable("DB_PASSWORD")
+                );
+                Console.WriteLine(connectionString);
+            }
             
             services.AddDbContext<ProductDbContext>(
                 options => options.UseMySql(connectionString)

@@ -11,3 +11,58 @@ spec:
     app: product-service
     tier: api
   type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-api
+  labels:
+    app: product-service
+spec:
+  selector:
+    matchLabels:
+      app: product-service
+  strategy:
+    type: Recreate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: product-service
+        tier: api
+    spec:
+      containers:
+        - image: gcr.io/crested-axe-202521/retail-app-product-service:release
+          name: product-api
+          imagePullPolicy: Always
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: product-db-credentials
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: product-db-credentials
+                  key: password
+            - name: DB_HOST
+              value: 127.0.0.1:3306
+            - name: LOGIN_API_URL
+              value: http://login-service/api
+          ports:
+            - containerPort: 80
+              name: product-api
+        - name: cloudql-proxy
+          image: gcr.io/cloudsql-docker/gce-proxy:1.11
+          command: [ "/cloud_sql_proxy",
+                     "-instances=crested-axe-202521:us-central1:retail-app-product-database=tcp:3306",
+                     "-credential_file=/secrets/cloudsql/productDbCredentials.json" ]
+          volumeMounts:
+            - name: product-db-instance-credentials
+              mountPath: /secrets/cloudsql
+              readOnly: true
+      volumes:
+        - name: product-db-instance-credentials
+          secret:
+            secretName: product-db-instance-credentials
